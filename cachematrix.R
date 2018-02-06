@@ -6,27 +6,31 @@
 
 # makeCacheMatrix creates a special "matrix" object that can cache its inverse
 # and stores both in the parent environment, where they can be accessed by cacheSolve
-# 
-makeCacheMatrix <- function(x = matrix()) {
-    m<- NULL            # creates an empty object within makeCacheMatrix() environment
-    set <- function (y){    #defines the set() function
-        x<<- y          # assigns the value of y (input argument) to the 
-        # parent environment of x (resets the x if x changed)
-        m<<- NULL       # assings the value NULL to the m object created in 
-        # the parent environment (resets the value stored 
-        # in m if x changed)
-    }
-    get <- function () x # retrieves the value of x from the parent environment
-    setInverse <- function(solve) m<<- solve # creates an inverse matrix (solve) and
-    # stores the value to the object  
-    #m in the parent environment
-    getInverse <- function() m # retrieves the value of m from the parent environment
-    list (set=set, get=get, setInverse=setInverse, getInverse=getInverse)
-    # assigns all these functions to specific elements of a list () and return it
-    # to the parent environment where it (and its environment) can be accesed by 
-    # cacheSolve
-}
 
+makeCacheMatrix <- function(x = matrix()) {
+    m<- NULL                     # creates an empty object within makeCacheMatrix() environment
+    
+    set <- function (y){         # defines the set() function
+        
+        x<<- y                   # assigns the value of y (input argument) to the 
+                                 # parent environment of x (resets the x if x changed)
+        
+        m<<- NULL                # assings the value NULL to the m object created in 
+                                 # the parent environment (resets the value stored 
+                                 # in m if x changed)
+    }
+    get <- function () x                        # retrieves the value of x from the parent environment
+    
+    setInverse <- function(solve) m<<- solve    # creates an inverse matrix (by using function solve) and
+                                                # stores the obtained value to the object  
+                                                # m in the parent environment
+    
+    getInverse <- function() m                  # retrieves the value of m from the parent environment
+    
+    list (set=set, get=get, setInverse=setInverse, getInverse=getInverse)
+    # assigns all these functions to specific elements of a list () and returns it
+    # to the parent environment where it (and its environment) can be accesed by cacheSolve
+}
 
 ## the cacheSolve function computes the inverse matrix from the matrix created with
 ## the makeCacheMatrix function if the inverse was not already created and stored in 
@@ -34,19 +38,23 @@ makeCacheMatrix <- function(x = matrix()) {
 ## retrieves its value. 
 
 cacheSolve <- function(x, ...) {
-    m <-x$getInverse()   # the function tries to retrieve the inverse matrix (m)
-    # stored in the cache by calling getInverse function 
-    # from makeCacheMatrix (the function retrieves the value
-    # of m from the parent environment)
-    if(!is.null(m)){   # if TRUE (the value is stored in m), the function returns 
-        # the cached value of m (the inverse matrix)
+    m <-x$getInverse()          # the function tries to retrieve the inverse matrix (m)
+                                # stored in the cache by calling getInverse function from the list returned
+                                # from makeCacheMatrix (the function getInverse retrieves the value
+                                # of m from the parent environment)
+    
+    if(!is.null(m)){            # if TRUE (the value is stored in m), the function returns 
+                                # the cached value of m (the inverse matrix)
         message("getting cached data") 
-        return(m)  # Returns the inversed matrix stored in m
+        return(m)               # Returns the inversed matrix stored in m
     }
-    data<- x$get() # if FALSE, the value is not jet stored (if x in the makeCacheMatrix
-    # was reset), function get() retrieves the value of x from 
-    # the parent environment
-    m<- solve(data, ...)  # computes the inverse matrix from x using solve() function
-    x$setInverse(m) #stores the obtained inverse matrix
-    m   ## Returns the inversed matrix stored in m
+    data<- x$get()              # if FALSE, the value is not jet stored (if x in the makeCacheMatrix
+                                # was reset), function get()(called from the list returned from makeCacheMatrix) 
+                                # retrieves the value of x from the parent environment
+    
+    m<- solve(data, ...)        # computes the inverse matrix from x using solve() function
+    
+    x$setInverse(m)             #stores the obtained inverse matrix in object m by calling the function setInverse
+    
+    m                           # Returns the inversed matrix stored in m
 }
